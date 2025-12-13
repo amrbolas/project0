@@ -1,25 +1,37 @@
 <?php
-session_start();
-include 'config.php';  // Include DB connection
+// Include config for DB connection
+include 'config.php';
 
-// Get data from form
-$fullname = $_POST['name'];
-$email = $_POST['email'];
-$phone = $_POST['phone'];
-$address = $_POST['address'];
-$products = json_encode($_SESSION['cart']); // Cart from session
-$total_price = $_POST['total_price'];
-$payment_method = $_POST['paymentMethod'];
+// Get POST data from frontend
+$data = json_decode(file_get_contents('php://input'), true);
 
-// Insert order into orders table
+if (!$data) {
+    echo "No data received";
+    exit();
+}
+
+$fullname = $conn->real_escape_string($data['fullname']);
+$email = $conn->real_escape_string($data['email']);
+$phone = $conn->real_escape_string($data['phone']);
+$address = $conn->real_escape_string($data['address']);
+$products = $conn->real_escape_string(json_encode($data['products']));
+$total_price = 0;
+
+// Calculate total price
+foreach ($data['products'] as $p) {
+    $total_price += floatval($p['price']);
+}
+
+$payment_method = $conn->real_escape_string($data['paymentMethod']);
+
+// Insert order into DB
 $sql = "INSERT INTO orders (fullname, email, phone, address, products, total_price, payment_method)
         VALUES ('$fullname', '$email', '$phone', '$address', '$products', '$total_price', '$payment_method')";
 
 if ($conn->query($sql) === TRUE) {
     echo "Order placed successfully!";
-    unset($_SESSION['cart']); // Clear cart after checkout
 } else {
-    echo "Error: " . $sql . "<br>" . $conn->error;
+    echo "Error: " . $conn->error;
 }
 
 $conn->close();

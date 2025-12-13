@@ -17,31 +17,30 @@
     padding: 10px 0;
     text-align: center;
   }
+  nav a {
+    color: #fff;
+    text-decoration: none;
+    margin: 0 10px;
+  }
   .container {
     width: 80%;
     margin: 20px auto;
-  }
-  .checkout-form {
     background-color: #fff;
     padding: 20px;
-    border: 1px solid #ddd;
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
   }
-  .checkout-form label {
+  form label {
     display: block;
-    margin-bottom: 10px;
+    margin: 10px 0 5px;
   }
-  .checkout-form input,
-  .checkout-form textarea,
-  .checkout-form select {
+  form input, form textarea, form select {
     width: 100%;
-    padding: 10px;
-    margin-top: 5px;
+    padding: 8px;
     margin-bottom: 15px;
-    border: 1px solid #ccc;
     border-radius: 5px;
+    border: 1px solid #ccc;
   }
-  .checkout-form button {
+  button {
     display: block;
     width: 100%;
     padding: 10px;
@@ -49,11 +48,10 @@
     color: #fff;
     border: none;
     cursor: pointer;
-    margin-top: 10px;
     border-radius: 5px;
-    transition: background-color 0.3s ease;
+    font-size: 16px;
   }
-  .checkout-form button:hover {
+  button:hover {
     background-color: #555;
   }
 </style>
@@ -69,36 +67,64 @@
 </header>
 
 <div class="container">
-  <div class="checkout-form">
-    <h2>Payment Information</h2>
-    <form id="checkoutForm" onsubmit="return processPayment()">
-      <label for="name">Full Name:</label>
-      <input type="text" id="name" name="name" required>
+  <h2>Billing Information</h2>
+  <form id="checkoutForm">
+    <label for="fullname">Full Name:</label>
+    <input type="text" id="fullname" name="fullname" required>
 
-      <label for="email">Email:</label>
-      <input type="email" id="email" name="email" required>
+    <label for="email">Email:</label>
+    <input type="email" id="email" name="email" required>
 
-      <label for="phone">Phone:</label>
-      <input type="tel" id="phone" name="phone" required>
+    <label for="phone">Phone:</label>
+    <input type="tel" id="phone" name="phone" required>
 
-      <label for="address">Address:</label>
-      <textarea id="address" name="address" rows="4" required></textarea>
+    <label for="address">Address:</label>
+    <textarea id="address" name="address" rows="4" required></textarea>
 
-      <label for="paymentMethod">Payment Method:</label>
-      <select id="paymentMethod" name="paymentMethod" required>
-        <option value="credit">Credit Card</option>
-        <option value="cod">Cash on Delivery</option>
-        <option value="paypal">PayPal</option>
-      </select>
+    <label for="paymentMethod">Payment Method:</label>
+    <select id="paymentMethod" name="paymentMethod" required>
+      <option value="credit">Credit Card</option>
+      <option value="cod">Cash on Delivery</option>
+      <option value="paypal">PayPal</option>
+    </select>
 
-      <button type="submit">Confirm Order & Pay</button>
-    </form>
-  </div>
+    <button type="submit">Place Order</button>
+  </form>
 </div>
 
-<footer>
-  <p>All rights reserved &copy; 2024 - Cosmetics Store</p>
-</footer>
+<script>
+document.getElementById('checkoutForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    let cart = JSON.parse(localStorage.getItem('cart')) || [];
+    if(cart.length === 0){
+        alert("Cart is empty!");
+        return;
+    }
+
+    let data = {
+        fullname: document.getElementById('fullname').value,
+        email: document.getElementById('email').value,
+        phone: document.getElementById('phone').value,
+        address: document.getElementById('address').value,
+        paymentMethod: document.getElementById('paymentMethod').value,
+        products: cart
+    };
+
+    fetch('../backend/checkout.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.text())
+    .then(res => {
+        alert(res);
+        localStorage.removeItem('cart'); // clear cart after order
+        window.location.href = "index.html";
+    })
+    .catch(err => console.error(err));
+});
+</script>
 
 </body>
 </html>
