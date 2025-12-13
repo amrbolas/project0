@@ -1,39 +1,23 @@
 <?php
 session_start();
+include 'config.php';  // Include DB connection
 
-// Database connection
-$servername = "localhost";
-$username = "username";
-$password = "password";
-$dbname = "mydatabase";
-
-$conn = new mysqli($servername, $username, $password, $dbname);
-
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
-
-// Get form data
-$fullname = $_POST['fullname'];
+// Get data from form
+$fullname = $_POST['name'];
 $email = $_POST['email'];
 $phone = $_POST['phone'];
 $address = $_POST['address'];
-$products = json_encode($_SESSION['cart']); 
-$total_price = calculateTotalPrice($_SESSION['cart']); 
+$products = json_encode($_SESSION['cart']); // Cart from session
+$total_price = $_POST['total_price'];
 $payment_method = $_POST['paymentMethod'];
 
-// Insert into database
+// Insert order into orders table
 $sql = "INSERT INTO orders (fullname, email, phone, address, products, total_price, payment_method)
         VALUES ('$fullname', '$email', '$phone', '$address', '$products', '$total_price', '$payment_method')";
 
 if ($conn->query($sql) === TRUE) {
-    sendConfirmationEmail($email, $fullname, $total_price);
-    sendOrderNotificationEmail($fullname, $email, $phone, $address, $products, $total_price, $payment_method);
-
-    unset($_SESSION['cart']);
-
-    header("Location: order_confirmation.php");
-    exit();
+    echo "Order placed successfully!";
+    unset($_SESSION['cart']); // Clear cart after checkout
 } else {
     echo "Error: " . $sql . "<br>" . $conn->error;
 }
